@@ -8,41 +8,100 @@
 </head>
 <body>
     <header>
-        <h1>🏆 MŚ 2026 - Ekipa</h1>
-        <div id="user-info">
-            <button id="login-btn">Zaloguj się przez Google</button>
-            <div id="logged-in-ui" style="display: none;">
-                <span id="user-name"></span>
-                <button id="logout-btn">Wyloguj</button>
+        <div class="header-content">
+            <h1>🏆 MŚ 2026 - Ekipa</h1>
+            
+            <div id="user-info">
+                <div id="login-form">
+                    <input type="email" id="email-input" placeholder="E-mail">
+                    <input type="password" id="password-input" placeholder="Hasło">
+                    <button id="login-btn" class="btn-primary">Zaloguj</button>
+                    <button id="register-btn" class="btn-secondary">Zarejestruj się</button>
+                </div>
+                <div id="logged-in-ui" style="display: none;">
+                    <span id="user-points" class="badge-gold">💰 0 pkt</span>
+                    <span id="user-name"></span>
+                    <button id="logout-btn" class="btn-danger">Wyloguj</button>
+                </div>
             </div>
         </div>
     </header>
 
     <main id="main-content" style="display: none;">
-        <section id="schedule">
-            <h2>📅 Terminarz LIVE</h2>
-            <div id="matches-container">
-                </div>
-        </section>
+        <div class="grid-layout">
+            <div class="column">
+                <section id="schedule" class="card">
+                    <h2>📅 Terminarz LIVE</h2>
+                    <div id="matches-container" class="scrollable-list"></div>
+                </section>
 
-        <section id="betting">
-            <h2>🎯 Obstawianie</h2>
-            <form id="bet-form">
-                <p>Polska vs Meksyk</p>
-                <input type="number" id="home-score" min="0" placeholder="Polska" required> : 
-                <input type="number" id="away-score" min="0" placeholder="Meksyk" required>
-                <button type="submit">Zapisz typ</button>
-            </form>
-            <div id="my-bets"></div>
-        </section>
+                <section id="betting" class="card">
+                    <h2>🎯 Obstaw Mecz</h2>
+                    <div class="info-box">
+    <strong>Punktacja:</strong> Dokładny wynik = <b>+1 000 pkt</b> | Trafienie zwycięzcy/remisu = <b>+500 pkt</b>
+</div>
+                    <form id="bet-form">
+                        <select id="match-select" required>
+                            <option value="" disabled selected>Wybierz mecz...</option>
+                        </select>
+                        <div class="score-inputs">
+                            <input type="number" id="home-score" min="0" placeholder="Gosp." required>
+                            <span>:</span>
+                            <input type="number" id="away-score" min="0" placeholder="Goście" required>
+                        </div>
+                        <button type="submit" class="btn-primary full-width">Zapisz typ</button>
+                    </form>
+                    <div id="my-bets" class="bets-list scrollable-list" style="max-height: 200px; margin-top: 15px;"></div>
+                </section>
 
-        <section id="packs">
-            <h2>📦 Otwórz Paczkę (100 pkt)</h2>
-            <button id="open-pack-btn">Otwórz paczkę!</button>
-            <div id="pack-result"></div>
-            <h3>Twoje Karty:</h3>
-            <ul id="my-cards-list"></ul>
-        </section>
+                <section id="clicker" class="card">
+                    <h2>🖱️ Trening (Kliker)</h2>
+                    <p class="subtitle">Kliknij 100 razy, aby zdobyć 100 punktów!</p>
+                    <button id="clicker-btn" class="btn-secondary full-width" style="padding: 20px; font-size: 1.2rem;">
+                        Kopnij piłkę ⚽ (<span id="clicker-progress">0</span>/100)
+                    </button>
+                </section>
+            </div>
+
+            <div class="column">
+
+<!-- 🔴 PANEL ADMINISTRATORA (Tylko dla Ciebie) 🔴 -->
+<section id="admin-panel" class="card" style="display: none; border: 2px solid var(--danger);">
+    <h2 style="color: var(--danger);">🛠️ Panel Administratora</h2>
+    <p style="font-size: 0.85rem; margin-bottom: 15px;">Wpisz oficjalny wynik meczu, aby rozliczyć zakłady i rozdać punkty.</p>
+    <form id="admin-form">
+        <select id="admin-match-select" required style="width: 100%; margin-bottom: 10px;">
+            <option value="" disabled selected>Wybierz mecz...</option>
+            <!-- Lista załaduje się automatycznie -->
+        </select>
+        <div class="score-inputs">
+            <input type="number" id="admin-home-score" min="0" placeholder="Gosp." required>
+            <span>:</span>
+            <input type="number" id="admin-away-score" min="0" placeholder="Goście" required>
+        </div>
+        <button type="submit" class="btn-danger full-width" style="margin-top: 15px;">Rozlicz i rozdaj punkty!</button>
+    </form>
+    <div id="admin-log" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
+</section>
+                <section id="ranking" class="card">
+                    <h2>🏆 Ranking Ekipy</h2>
+                    <div id="ranking-list" class="ranking-container scrollable-list" style="max-height: 200px;"></div>
+                </section>
+		<section id="marketplace" class="card" style="border: 1px solid var(--gold);">
+                    <h2 style="color: var(--gold);">🤝 Rynek Transferowy</h2>
+                    <p style="font-size: 0.85rem; margin-bottom: 10px;">Kupuj i sprzedawaj karty graczom z Ekipy!</p>
+                    <div id="market-list" class="ranking-container scrollable-list" style="max-height: 250px;"></div>
+                </section>
+                <section id="packs" class="card packs-card">
+                    <h2>📦 Sklep i Karty</h2>
+                    <button id="open-pack-btn" class="btn-gold full-width">Otwórz paczkę (100 pkt)</button>
+                    <div id="pack-result"></div>
+                    
+                    <h3 style="margin-top: 20px;">Twoja Kolekcja (Album) <span id="collection-counter" style="color: var(--gold); font-size: 0.9rem;">(0/0)</span>:</h3>
+                    <div id="my-cards-album" class="album-grid scrollable-list" style="max-height: 400px;"></div>
+                </section>
+            </div>
+        </div>
     </main>
 
     <script type="module" src="app.js"></script>
