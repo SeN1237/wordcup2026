@@ -392,6 +392,7 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
     const selectedMatchId = matchSelect.value;
     const homeScore = document.getElementById('home-score').value;
     const awayScore = document.getElementById('away-score').value;
+    const cardsCount = document.getElementById('cards-count').value; // <--- POBIERANIE KARTEK
     
     if (!selectedMatchId) return alert("Wybierz mecz!");
     const matchData = matchesDB.find(m => m.id === selectedMatchId);
@@ -419,6 +420,7 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
             matchId: selectedMatchId,
             matchTitle: `${matchData.home} vs ${matchData.away}`,
             prediction: `${homeScore}:${awayScore}`,
+            cardsPrediction: cardsCount ? parseInt(cardsCount) : null, // <--- ZAPIS KARTEK DO BAZY
             timestamp: new Date()
         });
         alert("Zapisano typ!");
@@ -426,6 +428,7 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
         // Czyszczenie pół formularza po udanym obstawieniu
         document.getElementById('home-score').value = '';
         document.getElementById('away-score').value = '';
+        document.getElementById('cards-count').value = ''; // <--- CZYSZCZENIE POLA KARTEK
         
         loadUserBets();
     } catch (e) { console.error(e); }
@@ -438,8 +441,22 @@ async function loadUserBets() {
     myBetsDiv.innerHTML = "";
     querySnapshot.forEach((doc) => {
         const bet = doc.data();
-        myBetsDiv.innerHTML += `<div class="match-box" style="font-size: 0.9rem;">${bet.matchTitle} - Typ: <strong>${bet.prediction}</strong></div>`;
+        let cardsText = bet.cardsPrediction !== null ? ` | Kartki: <b>${bet.cardsPrediction}</b>` : "";
+        myBetsDiv.innerHTML += `<div class="match-box" style="font-size: 0.9rem;">${bet.matchTitle} - Typ: <strong>${bet.prediction}</strong>${cardsText}</div>`;
     });
+    
+    // Ładowanie typów turniejowych
+    const tourQ = query(collection(db, "tournament_bets"), where("userId", "==", currentUser.uid));
+    const tourSnap = await getDocs(tourQ);
+    const tourDiv = document.getElementById('my-tournament-bets');
+    if(!tourSnap.empty) {
+        document.getElementById('tournament-form').style.display = 'none'; // Ukryj formularz jeśli już obstawił
+        const tb = tourSnap.docs[0].data();
+        tourDiv.innerHTML = `<b>Twój Typ:</b> Wygrana: ${tb.winner}, Strzelec: ${tb.scorer}, MVP: ${tb.mvp}, Bramkarz: ${tb.gk}`;
+    } else {
+        document.getElementById('tournament-form').style.display = 'block';
+        tourDiv.innerHTML = "";
+    }
 }
 
 // --- KLIKER ---
@@ -602,6 +619,19 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
     const logDiv = document.getElementById('admin-log');
     
     if(!matchId) return alert("Wybierz mecz!");
+    
+    // Fragment w admin-form wewntrz pętli `for (const betDoc of snapshot.docs) {`
+            
+            const adminCards = parseInt(document.getElementById('admin-cards').value);
+            let pointsWon = 0;
+            
+            if (bet.prediction === exactScoreStr) pointsWon += 1000;
+            else if (betResult === realResult) pointsWon += 500;
+
+            // Punkty za kartki
+            if (bet.cardsPrediction === adminCards) {
+                pointsWon += 500; // Dodatkowe 500 pkt za idealną liczbę kartek!
+            }
 
     // Logika meczu: 1 = wygrana gospodarzy, 2 = wygrana gości, X = remis
     const realResult = (homeScore > awayScore) ? '1' : (homeScore < awayScore) ? '2' : 'X';
@@ -789,3 +819,62 @@ window.cancelMarketListing = async function(listingId, playerName, rarity) {
         loadUserCards();
     } catch(e) { console.error(e); }
 }
+
+// --- ZAKŁADY DŁUGOTERMINOWE ---
+document.getElementById('tournament-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!currentUser) return;
+
+    if(!confirm("Czy na pewno chcesz zapisać te typy? Nie będzie można ich zmienić!")) return;
+
+    try {
+        await addDoc(collection(db, "tournament_bets"), {
+            userId: currentUser.uid,
+            winner: document.getElementById('tour-winner').value.trim(),
+            scorer: document.getElementById('tour-scorer').value.trim(),
+            mvp: document.getElementById('tour-mvp').value.trim(),
+            gk: document.getElementById('tour-gk').value.trim(),
+            resolved: false
+        });
+        alert("Typy długoterminowe zostały zablokowane!");
+        loadUserBets();
+    } catch(e) { console.error(e); }
+});
+
+document.getElementById('admin-tour-btn').addEventListener('click', async () => {
+    if(currentUser.email !== ADMIN_EMAIL) return;
+    
+    const realWinner = document.getElementById('admin-tour-winner').value.trim().toLowerCase();
+    const realScorer = document.getElementById('admin-tour-scorer').value.trim().toLowerCase();
+    const realMvp = document.getElementById('admin-tour-mvp').value.trim().toLowerCase();
+    const realGk = document.getElementById('admin-tour-gk').value.trim().toLowerCase();
+    
+    const logDiv = document.getElementById('admin-log');
+    logDiv.innerText = "⏳ Rozliczam turniej...";
+
+    try {
+        const q = query(collection(db, "tournament_bets"), where("resolved", "==", false));
+        const snapshot = await getDocs(q);
+        
+        let processed = 0;
+        for (const betDoc of snapshot.docs) {
+            const bet = betDoc.data();
+            let tourPoints = 0;
+            
+            if(bet.winner.toLowerCase() === realWinner) tourPoints += 2000;
+            if(bet.scorer.toLowerCase() === realScorer) tourPoints += 2000;
+            if(bet.mvp.toLowerCase() === realMvp) tourPoints += 2000;
+            if(bet.gk.toLowerCase() === realGk) tourPoints += 2000;
+            
+            if(tourPoints > 0) {
+                await updateDoc(doc(db, "users", bet.userId), { points: increment(tourPoints) });
+            }
+            await updateDoc(doc(db, "tournament_bets", betDoc.id), { resolved: true, earned: tourPoints });
+            processed++;
+        }
+        logDiv.innerText = `✅ Sukces! Rozliczono turniej dla ${processed} graczy.`;
+    } catch (e) {
+        console.error(e);
+        logDiv.innerText = `❌ Błąd: ${e.message}`;
+    }
+});
