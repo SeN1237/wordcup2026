@@ -326,7 +326,12 @@ onAuthStateChanged(auth, async (user) => {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-            await setDoc(userRef, { email: user.email, points: 500 });
+            await setDoc(userRef, { 
+                email: user.email, 
+                points: 500,
+                exactHits: 0,   // Licznik dokładnych trafień (za 1000 pkt)
+                outcomeHits: 0  // Licznik trafień 1X2 (za 500 pkt)
+            });
         }
 
         onSnapshot(userRef, (doc) => {
@@ -541,10 +546,19 @@ function loadRanking() {
             const name = data.email.split('@')[0];
             let medal = place === 1 ? '🥇' : (place === 2 ? '🥈' : (place === 3 ? '🥉' : `${place}.`));
             
+            // Pobieramy statystyki (jeśli ktoś założył konto wcześniej, dajemy mu 0)
+            const exact = data.exactHits || 0;
+            const outcome = data.outcomeHits || 0;
+            
             rankingDiv.innerHTML += `
-                <div class="ranking-item">
-                    <span>${medal} ${name}</span>
-                    <span>${data.points} pkt</span>
+                <div class="ranking-item" style="align-items: flex-start;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span>${medal} ${name}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; margin-left: 25px; margin-top: 3px;">
+                            🎯 Dokładne: <b>${exact}</b> | ✅ Typ: <b>${outcome}</b>
+                        </span>
+                    </div>
+                    <span style="color: var(--gold);">${data.points} pkt</span>
                 </div>
             `;
             place++;
@@ -607,10 +621,20 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
             });
             
             // Dodaj punkty użytkownikowi do portfela (jeśli coś wygrał)
+            // Dodaj punkty użytkownikowi ORAZ zaktualizuj jego statystyki trafień
             if (pointsWon > 0) {
-                await updateDoc(doc(db, "users", bet.userId), {
-                    points: increment(pointsWon)
-                });
+                const userUpdate = { points: increment(pointsWon) };
+                
+                // Jeśli wygrał 1000 pkt, to znaczy że trafił dokładny wynik
+                if (pointsWon === 1000) {
+                    userUpdate.exactHits = increment(1);
+                } 
+                // Jeśli wygrał 500 pkt, trafił tylko zwycięzcę/remis
+                else if (pointsWon === 500) {
+                    userUpdate.outcomeHits = increment(1);
+                }
+                
+                await updateDoc(doc(db, "users", bet.userId), userUpdate);
             }
             processed++;
         }
