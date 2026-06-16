@@ -5,12 +5,13 @@ import { getFirestore, collection, addDoc, getDocs, query, where, setDoc, doc } 
 
 // WLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE
 const firebaseConfig = {
-  apiKey: "TWOJE_API_KEY",
-  authDomain: "twoj-projekt.firebaseapp.com",
-  projectId: "twoj-projekt",
-  storageBucket: "twoj-projekt.appspot.com",
-  messagingSenderId: "TWOJE_ID",
-  appId: "TWOJE_APP_ID"
+  apiKey: "AIzaSyCnRiStnJbgtUnSKrhwFkhrcHKyQMPTV6o",
+  authDomain: "worldcup2026-c5362.firebaseapp.com",
+  projectId: "worldcup2026-c5362",
+  storageBucket: "worldcup2026-c5362.firebasestorage.app",
+  messagingSenderId: "904347486693",
+  appId: "1:904347486693:web:246de8602e69493b47470c",
+  measurementId: "G-7Y4YR1RW04"
 };
 
 // Inicjalizacja Firebase
