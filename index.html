@@ -139,5 +139,12 @@
     </main>
 
     <script type="module" src="app.js"></script>
+    <div id="bets-modal" class="modal" style="display: none;">
+        <div class="modal-content card">
+            <span class="close-btn" onclick="closeBetsModal()">&times;</span>
+            <h2 id="modal-match-title" style="color: var(--primary);">Typy Ekipy</h2>
+            <div id="modal-bets-list" class="scrollable-list" style="max-height: 350px; margin-top: 15px;"></div>
+        </div>
+    </div>
 </body>
 </html>
