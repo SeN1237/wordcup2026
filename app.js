@@ -367,15 +367,28 @@ function renderMatches() {
 
         if (now < matchEndTime) {
             const displayDate = matchTime.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }) + ' ' + matchTime.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-            const isLive = now >= matchTime && now < matchEndTime;
             
+            const isStarted = now >= matchTime;
+            const isLive = isStarted && now < matchEndTime;
+            
+            // Przycisk "Typy" pojawia się tylko wtedy, gdy mecz się już zaczął!
+            let btnHtml = '';
+            if (isStarted) {
+                btnHtml = `<button class="btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; margin-left: 10px;" onclick="showTeamBets('${match.id}', '${match.home} vs ${match.away}')">👁️ Typy</button>`;
+            }
+
             container.innerHTML += `
-                <div class="match-box ${isLive ? 'live-match' : ''}" style="display: flex; justify-content: space-between;">
-                    <span>${isLive ? '🔴 LIVE' : '🕒'} ${displayDate}</span>
-                    <strong>${match.home} - ${match.away}</strong>
+                <div class="match-box ${isLive ? 'live-match' : ''}" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span>${isLive ? '🔴 LIVE' : '🕒'} ${displayDate}</span><br>
+                        <strong>${match.home} - ${match.away}</strong>
+                    </div>
+                    ${btnHtml}
                 </div>
             `;
-            if (now < matchTime) {
+            
+            // Do formularza obstawiania wpadają tylko mecze, które jeszcze nie wystartowały
+            if (!isStarted) {
                 matchSelect.innerHTML += `<option value="${match.id}">${match.home} vs ${match.away} (${displayDate})</option>`;
             }
         }
@@ -568,8 +581,9 @@ window.sellDuplicate = async function(docId) {
 
 
 // --- RANKING ---
+window.usersDataMap = {}; // Globalny słownik przechowujący Nicki graczy
+
 function loadRanking() {
-    // Pobiera wszystkich userów i sortuje po punktach malejąco
     const q = query(collection(db, "users"), orderBy("points", "desc"));
     onSnapshot(q, (snapshot) => {
         const rankingDiv = document.getElementById('ranking-list');
@@ -578,9 +592,10 @@ function loadRanking() {
         snapshot.forEach((doc) => {
             const data = doc.data();
             const name = data.email.split('@')[0];
-            let medal = place === 1 ? '🥇' : (place === 2 ? '🥈' : (place === 3 ? '🥉' : `${place}.`));
             
-            // Pobieramy statystyki (jeśli ktoś założył konto wcześniej, dajemy mu 0)
+            window.usersDataMap[doc.id] = name; // Skrypt zapamiętuje Nick!
+
+            let medal = place === 1 ? '🥇' : (place === 2 ? '🥈' : (place === 3 ? '🥉' : `${place}.`));
             const exact = data.exactHits || 0;
             const outcome = data.outcomeHits || 0;
             
@@ -878,3 +893,47 @@ document.getElementById('admin-tour-btn').addEventListener('click', async () => 
         logDiv.innerText = `❌ Błąd: ${e.message}`;
     }
 });
+
+// --- 👁️ PODGLĄD TYPÓW (MODAL) ---
+window.showTeamBets = async function(matchId, matchTitle) {
+    document.getElementById('modal-match-title').innerText = matchTitle;
+    const listDiv = document.getElementById('modal-bets-list');
+    listDiv.innerHTML = "<p style='text-align: center;'>Wczytywanie...</p>";
+    document.getElementById('bets-modal').style.display = 'flex'; // Pokaż modal
+
+    try {
+        const q = query(collection(db, "bets"), where("matchId", "==", matchId));
+        const snapshot = await getDocs(q);
+        
+        if(snapshot.empty) {
+            listDiv.innerHTML = "<p style='text-align: center; color: var(--text-muted);'>Nikt w Ekipie nie obstawił tego meczu!</p>";
+            return;
+        }
+
+        listDiv.innerHTML = "";
+        snapshot.forEach(docSnap => {
+            const bet = docSnap.data();
+            const userName = window.usersDataMap[bet.userId] || "Nieznany";
+            const cardsText = bet.cardsPrediction !== null ? ` | 🟨🟥: <b>${bet.cardsPrediction}</b>` : "";
+            
+            listDiv.innerHTML += `
+                <div class="market-item">
+                    <div>
+                        <strong style="color: var(--gold);">${userName}</strong>
+                        <span style="font-size: 0.85rem; color: var(--text-muted); display:block; margin-top: 3px;">
+                            Typuje: <strong style="color: white; font-size: 1rem;">${bet.prediction}</strong>${cardsText}
+                        </span>
+                    </div>
+                </div>
+            `;
+        });
+    } catch(e) {
+        listDiv.innerHTML = "Błąd: " + e.message;
+        console.error(e);
+    }
+}
+
+// Zamykanie Modala przyciskiem (X)
+window.closeBetsModal = function() {
+    document.getElementById('bets-modal').style.display = 'none';
+}
