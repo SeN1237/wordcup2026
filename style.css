@@ -1,42 +1,253 @@
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --primary: #10b981;
+    --primary-hover: #059669;
+    --gold: #fbbf24;
+    --gold-hover: #f59e0b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --danger: #ef4444;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
     margin: 0;
     padding: 0;
 }
 
+/* Header */
 header {
-    background-color: #1a5e20;
-    color: white;
-    padding: 1rem;
+    background-color: var(--card-bg);
+    border-bottom: 2px solid var(--primary);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
-main {
-    padding: 2rem;
-    max-width: 800px;
-    margin: auto;
+h1 { margin: 0; font-size: 1.5rem; color: var(--gold); }
+
+/* Formularze i Przyciski */
+input, select {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
 }
 
-section {
-    background: white;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+input:focus, select:focus { border-color: var(--primary); }
 
 button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
     padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
     cursor: pointer;
-    border-radius: 4px;
+    transition: 0.2s;
+    font-size: 1rem;
 }
 
-button:hover { background-color: #45a049; }
-input { width: 50px; padding: 5px; text-align: center; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: #334155; color: white; }
+.btn-secondary:hover { background: #475569; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-gold { background: var(--gold); color: #000; font-size: 1.2rem; padding: 15px; }
+.btn-gold:hover { background: var(--gold-hover); transform: scale(1.02); }
+.full-width { width: 100%; margin-top: 15px; }
+
+/* Layout Główny */
+main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+@media (min-width: 768px) {
+    .grid-layout { grid-template-columns: 1.5fr 1fr; }
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+}
+
+h2 { margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 10px; color: var(--primary); }
+
+/* Obstawianie */
+#match-select { width: 100%; margin-bottom: 15px; }
+.score-inputs { display: flex; align-items: center; justify-content: center; gap: 15px; }
+.score-inputs input { width: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; }
+.score-inputs span { font-size: 1.5rem; font-weight: bold; }
+
+.match-box {
+    background: #0f172a;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--primary);
+}
+
+/* Karty */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 0;
+    list-style: none;
+}
+
+.cards-grid li {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    padding: 15px 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.cards-grid li span { display: block; font-size: 0.75rem; margin-top: 5px; color: var(--gold); }
+.rarity-Legend span { color: #fbbf24; text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); }
+.rarity-Rare span { color: #38bdf8; }
+.rarity-Common span { color: var(--text-muted); }
+
+/* --- NOWE FUNKCJE --- */
+
+/* Suwaki na listy */
+.scrollable-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Własny wygląd suwaka (Scrollbar) */
+.scrollable-list::-webkit-scrollbar { width: 8px; }
+.scrollable-list::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+.scrollable-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.scrollable-list::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Punkty i Informacje */
+.badge-gold {
+    background: var(--gold);
+    color: #000;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.info-box {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Ranking */
+.ranking-container { padding: 0; margin: 0; }
+.ranking-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+    font-weight: bold;
+}
+.ranking-item:first-child { color: var(--gold); font-size: 1.1rem; }
+
+/* Album Kart */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.album-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 120px;
+}
+
+.card-quantity {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--danger);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.sell-btn {
+    background: #334155;
+    color: white;
+    border: none;
+    padding: 5px;
+    font-size: 0.75rem;
+    margin-top: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.sell-btn:hover { background: var(--primary); }
+
+/* Rynek Transferowy */
+.market-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;
+    border-bottom: 1px solid #334155;
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+.market-info { display: flex; flex-direction: column; }
+.market-seller { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+.btn-buy {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.btn-buy:hover { background: var(--gold-hover); }
