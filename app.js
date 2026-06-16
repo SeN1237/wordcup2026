@@ -464,9 +464,26 @@ document.getElementById('open-pack-btn').addEventListener('click', async () => {
     // Pobranie 100 punktów
     await updateDoc(doc(db, "users", currentUser.uid), { points: increment(-100) });
 
-    const randomPlayer = playersDB[Math.floor(Math.random() * playersDB.length)];
-    document.getElementById('pack-result').innerHTML = `<h3 style="color: var(--gold); text-align: center;">🎉 ${randomPlayer.name}</h3>`;
+    // 1. Losujemy liczbę od 0 do 100 (rzut "kostką" o 100 ściankach)
+    const roll = Math.random() * 100;
+    let targetRarity;
 
+    // 2. Ustalamy co wylosowaliśmy na podstawie procentów
+    if (roll < 5) {
+        targetRarity = "Legend"; // 5% szans (od 0 do 5)
+    } else if (roll < 30) {
+        targetRarity = "Rare";   // 25% szans (od 5 do 30)
+    } else {
+        targetRarity = "Common"; // 70% szans (reszta)
+    }
+
+    // 3. Filtrujemy bazę tylko do zawodników z wylosowanej kategorii
+    const filteredPlayers = playersDB.filter(p => p.rarity === targetRarity);
+    
+    // 4. Losujemy konkretnego piłkarza z tej węższej grupy
+    const randomPlayer = filteredPlayers[Math.floor(Math.random() * filteredPlayers.length)];
+
+    document.getElementById('pack-result').innerHTML = `<h3 style="color: var(--gold); text-align: center;">🎉 ${randomPlayer.name}</h3>`;
     await addDoc(collection(db, "user_cards"), {
         userId: currentUser.uid,
         playerName: randomPlayer.name,
