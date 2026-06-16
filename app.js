@@ -390,7 +390,23 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
     
     if (!selectedMatchId) return alert("Wybierz mecz!");
     const matchData = matchesDB.find(m => m.id === selectedMatchId);
+    
+    // Zabezpieczenie 1: Czy mecz się już nie zaczął?
     if (new Date() >= new Date(matchData.date)) return alert("Mecz już się rozpoczął!");
+
+    // 🔴 ZABEZPIECZENIE 2: Czy użytkownik już obstawił ten mecz? 🔴
+    const checkQuery = query(
+        collection(db, "bets"), 
+        where("userId", "==", currentUser.uid), 
+        where("matchId", "==", selectedMatchId)
+    );
+    const checkSnapshot = await getDocs(checkQuery);
+    
+    // Jeśli checkSnapshot NIE jest puste, to znaczy, że zakład już istnieje!
+    if (!checkSnapshot.empty) {
+        return alert("Odrzucono: Już oddałeś swój typ na ten mecz!");
+    }
+    // -------------------------------------------------------------
 
     try {
         await addDoc(collection(db, "bets"), {
@@ -401,6 +417,11 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
             timestamp: new Date()
         });
         alert("Zapisano typ!");
+        
+        // Czyszczenie pół formularza po udanym obstawieniu
+        document.getElementById('home-score').value = '';
+        document.getElementById('away-score').value = '';
+        
         loadUserBets();
     } catch (e) { console.error(e); }
 });
