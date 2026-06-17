@@ -35,32 +35,46 @@
                     <div id="matches-container" class="scrollable-list"></div>
                 </section>
 
-                <section id="betting" class="card">
-                    <h2>🎯 Obstaw Mecz</h2>
-                    <div class="info-box" style="text-align: left;">
-                        <strong>Punktacja za mecz:</strong><br>
-                        🎯 Dokładny wynik = <b>+1 000 pkt</b><br>
-                        ✅ Trafienie zwycięzcy/remisu = <b>+500 pkt</b><br>
-                        🟨🟥 Idealna liczba kartek = <b>+500 pkt</b><br>
-                        <hr style="border: 0; border-top: 1px solid var(--primary); margin: 8px 0;">
-                        <span style="font-size: 0.75rem;"><b>Zasada kartek:</b> Liczymy każdą sztukę! 1 żółta = 1 kartka, 1 czerwona = 1 kartka (np. jeśli w meczu sędzia pokazał 3 żółte i 2 czerwone, wpisujesz "5").</span>
-                    </div>
-                    <form id="bet-form">
-                        <select id="match-select" required>
-                            <option value="" disabled selected>Wybierz mecz...</option>
-                        </select>
-                       <div class="score-inputs">
-                            <input type="number" id="home-score" min="0" placeholder="Gosp." required>
-                            <span>:</span>
-                            <input type="number" id="away-score" min="0" placeholder="Goście" required>
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <input type="number" id="cards-count" min="0" placeholder="Liczba kartek w meczu (żółte + czerwone)" style="width: 100%;">
-                        </div>
-                        <button type="submit" class="btn-primary full-width">Zapisz typ</button>
-                    </form>
-                    <div id="my-bets" class="bets-list scrollable-list" style="max-height: 200px; margin-top: 15px;"></div>
-                </section>
+                <section id="special-bet" class="card" style="border: 2px solid var(--gold); display: none;">
+    <h2 style="color: var(--gold);">⚡ Szybki Strzał Dnia</h2>
+    <p id="special-q-text" style="font-weight: bold; font-size: 1.1rem; text-align: center; margin-bottom: 15px;"></p>
+    <div style="display: flex; gap: 10px;">
+        <button id="special-btn-yes" class="btn-primary" style="flex: 1;">TAK</button>
+        <button id="special-btn-no" class="btn-danger" style="flex: 1;">NIE</button>
+    </div>
+    <p id="special-status" style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;"></p>
+</section>
+
+<section id="betting" class="card">
+    <h2>🎯 Obstaw Mecz</h2>
+    <div class="info-box" style="text-align: left;">
+        <strong>Punktacja:</strong> Wynik = <b>+1000</b> | Zwycięzca = <b>+500</b> | Kartki = <b>+500</b><br>
+        <span style="color: var(--danger); font-weight: bold;">🔥 Pewniaczek (Joker):</span> Podwaja zdobyte punkty za mecz! Używaj mądrze.
+    </div>
+    <form id="bet-form">
+        <select id="match-select" required>
+            <option value="" disabled selected>Wybierz mecz...</option>
+        </select>
+        <div class="score-inputs">
+            <input type="number" id="home-score" min="0" placeholder="Gosp." required>
+            <span>:</span>
+            <input type="number" id="away-score" min="0" placeholder="Goście" required>
+        </div>
+        <div style="margin-top: 10px;">
+            <input type="number" id="cards-count" min="0" placeholder="Liczba kartek w meczu" style="width: 100%;">
+        </div>
+        
+        <div style="margin-top: 15px; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 6px; border: 1px solid var(--danger);">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold;">
+                <input type="checkbox" id="use-joker" style="width: 20px; height: 20px;">
+                Użyj Jokera x2 (Pozostało: <span id="joker-count" style="color: var(--gold);">0</span>)
+            </label>
+        </div>
+
+        <button type="submit" class="btn-primary full-width">Zapisz typ</button>
+    </form>
+    <div id="my-bets" class="bets-list scrollable-list" style="max-height: 200px; margin-top: 15px;"></div>
+</section>
 
                 <section id="clicker" class="card">
                     <h2>🖱️ Trening (Kliker)</h2>
@@ -101,6 +115,15 @@
         <button id="admin-tour-btn" class="btn-gold full-width">Rozdaj punkty za turniej!</button>
     </div>
     <div id="admin-log" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
+    <div style="margin-top: 25px; border-top: 1px solid #334155; padding-top: 15px;">
+    <h3 style="color: var(--gold); margin-top: 0;">⚡ Zarządzaj Szybkim Strzałem</h3>
+    <input type="text" id="admin-special-q" placeholder="Pytanie (np. Czy Mbappe strzeli?)" style="width: 100%; margin-bottom: 5px;">
+    <button id="admin-publish-special" class="btn-primary full-width" style="margin-bottom: 10px;">Publikuj Pytanie (Otwórz Zakłady)</button>
+    <div style="display: flex; gap: 5px;">
+        <button id="admin-resolve-yes" class="btn-secondary" style="flex: 1; border: 1px solid #10b981;">Wygrało TAK</button>
+        <button id="admin-resolve-no" class="btn-secondary" style="flex: 1; border: 1px solid #ef4444;">Wygrało NIE</button>
+    </div>
+</div>
 </section>
 <section id="tournament-bets" class="card" style="border-top: 4px solid var(--primary);">
                     <h2>🏆 Typy Długoterminowe</h2>
