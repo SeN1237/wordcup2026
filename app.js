@@ -450,12 +450,51 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
 async function loadUserBets() {
     const q = query(collection(db, "bets"), where("userId", "==", currentUser.uid));
     const querySnapshot = await getDocs(q);
+    
+    // Zbieramy typy do tablicy, aby wyświetlać najnowsze na samej górze
+    const myBets = [];
+    querySnapshot.forEach((doc) => myBets.push(doc.data()));
+    myBets.sort((a, b) => b.timestamp - a.timestamp);
+
     const myBetsDiv = document.getElementById('my-bets');
     myBetsDiv.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-        const bet = doc.data();
-        let cardsText = bet.cardsPrediction !== null ? ` | Kartki: <b>${bet.cardsPrediction}</b>` : "";
-        myBetsDiv.innerHTML += `<div class="match-box" style="font-size: 0.9rem;">${bet.matchTitle} - Typ: <strong>${bet.prediction}</strong>${cardsText}</div>`;
+    
+    myBets.forEach((bet) => {
+        let cardsText = bet.cardsPrediction !== null ? ` | 🟨🟥: <b>${bet.cardsPrediction}</b>` : "";
+        
+        let betStyle = "";
+        let resultBadge = `<span style="color: var(--text-muted); font-size: 0.8rem; float: right;">⏳ W grze</span>`;
+
+        // Kolorowanie rozliczonych zakładów
+        if (bet.status === "resolved") {
+            const pts = bet.pointsEarned || 0;
+            const realScoreInfo = `<br><span style="font-size: 0.75rem; color: var(--text-muted);">Wynik meczu: <b>${bet.realScore}</b></span>`;
+
+            if (pts >= 1000) {
+                // ZIELONY: Dokładny wynik (+1000 lub +1500 z kartkami)
+                betStyle = "border-left-color: #10b981; background: rgba(16, 185, 129, 0.1);"; 
+                resultBadge = `<span style="color: #10b981; font-weight: bold; float: right;">+${pts} pkt</span>` + realScoreInfo;
+            } else if (pts > 0) {
+                // POMARAŃCZOWY: Trafiony zwycięzca lub same kartki (+500)
+                betStyle = "border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.1);";
+                resultBadge = `<span style="color: #f59e0b; font-weight: bold; float: right;">+${pts} pkt</span>` + realScoreInfo;
+            } else {
+                // CZERWONY: Pudło (0)
+                betStyle = "border-left-color: #ef4444; opacity: 0.6;";
+                resultBadge = `<span style="color: #ef4444; font-weight: bold; float: right;">0 pkt</span>` + realScoreInfo;
+            }
+        }
+
+        // Dodawanie klocka HTML
+        myBetsDiv.innerHTML += `
+            <div class="match-box" style="font-size: 0.9rem; padding: 12px; ${betStyle}">
+                <div style="margin-bottom: 6px;">
+                    <strong>${bet.matchTitle}</strong> 
+                    ${resultBadge}
+                </div>
+                Twój Typ: <strong>${bet.prediction}</strong>${cardsText}
+            </div>
+        `;
     });
     
     // Ładowanie typów turniejowych
@@ -616,12 +655,26 @@ function loadRanking() {
 }
 
 // --- 🛠️ PANEL ADMINISTRATORA (ROZLICZANIE ZAKŁADÓW) ---
-function populateAdminMatches() {
+async function populateAdminMatches() {
     const adminSelect = document.getElementById('admin-match-select');
-    adminSelect.innerHTML = '<option value="" disabled selected>Wybierz mecz...</option>';
-    matchesDB.forEach(match => {
-        adminSelect.innerHTML += `<option value="${match.id}">${match.home} vs ${match.away}</option>`;
-    });
+    adminSelect.innerHTML = '<option value="" disabled selected>Ładowanie meczów...</option>';
+    
+    try {
+        // 1. Pobieramy z bazy listę ID meczów, które już rozliczyłeś
+        const resolvedSnap = await getDocs(collection(db, "resolved_matches"));
+        const resolvedIds = resolvedSnap.docs.map(docSnap => docSnap.id);
+        
+        // 2. Budujemy listę od nowa
+        adminSelect.innerHTML = '<option value="" disabled selected>Wybierz mecz...</option>';
+        matchesDB.forEach(match => {
+            // 3. Dodajemy mecz TYLKO, jeśli jego ID nie ma na liście rozliczonych!
+            if (!resolvedIds.includes(match.id)) {
+                adminSelect.innerHTML += `<option value="${match.id}">${match.home} vs ${match.away}</option>`;
+            }
+        });
+    } catch(e) {
+        console.error("Błąd pobierania rozliczonych meczów:", e);
+    }
 }
 
 document.getElementById('admin-form').addEventListener('submit', async (e) => {
@@ -631,23 +684,12 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
     const matchId = document.getElementById('admin-match-select').value;
     const homeScore = parseInt(document.getElementById('admin-home-score').value);
     const awayScore = parseInt(document.getElementById('admin-away-score').value);
+    const adminCards = parseInt(document.getElementById('admin-cards').value); // Pobieranie wpisanych kartek
     const logDiv = document.getElementById('admin-log');
     
     if(!matchId) return alert("Wybierz mecz!");
+    if(isNaN(adminCards)) return alert("Wpisz ilość kartek!");
     
-    // Fragment w admin-form wewntrz pętli `for (const betDoc of snapshot.docs) {`
-            
-            const adminCards = parseInt(document.getElementById('admin-cards').value);
-            let pointsWon = 0;
-            
-            if (bet.prediction === exactScoreStr) pointsWon += 1000;
-            else if (betResult === realResult) pointsWon += 500;
-
-            // Punkty za kartki
-            if (bet.cardsPrediction === adminCards) {
-                pointsWon += 500; // Dodatkowe 500 pkt za idealną liczbę kartek!
-            }
-
     // Logika meczu: 1 = wygrana gospodarzy, 2 = wygrana gości, X = remis
     const realResult = (homeScore > awayScore) ? '1' : (homeScore < awayScore) ? '2' : 'X';
     const exactScoreStr = `${homeScore}:${awayScore}`;
@@ -671,9 +713,18 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
             const betResult = (betHome > betAway) ? '1' : (betHome < betAway) ? '2' : 'X';
             
             let pointsWon = 0;
-            // 1000 pkt za dokładny wynik, 500 pkt za trafienie kto wygra
-            if (bet.prediction === exactScoreStr) pointsWon = 1000;
-            else if (betResult === realResult) pointsWon = 500;
+            
+            // 1. Punkty za trafienie wyniku
+            if (bet.prediction === exactScoreStr) {
+                pointsWon += 1000;
+            } else if (betResult === realResult) {
+                pointsWon += 500;
+            }
+
+            // 2. Punkty za kartki
+            if (bet.cardsPrediction === adminCards) {
+                pointsWon += 500; 
+            }
             
             // Zaktualizuj zakład w bazie (oznacz jako rozliczony)
             await updateDoc(doc(db, "bets", betDoc.id), {
@@ -682,17 +733,13 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
                 realScore: exactScoreStr
             });
             
-            // Dodaj punkty użytkownikowi do portfela (jeśli coś wygrał)
             // Dodaj punkty użytkownikowi ORAZ zaktualizuj jego statystyki trafień
             if (pointsWon > 0) {
                 const userUpdate = { points: increment(pointsWon) };
                 
-                // Jeśli wygrał 1000 pkt, to znaczy że trafił dokładny wynik
-                if (pointsWon === 1000) {
+                if (bet.prediction === exactScoreStr) {
                     userUpdate.exactHits = increment(1);
-                } 
-                // Jeśli wygrał 500 pkt, trafił tylko zwycięzcę/remis
-                else if (pointsWon === 500) {
+                } else if (betResult === realResult) {
                     userUpdate.outcomeHits = increment(1);
                 }
                 
@@ -701,9 +748,20 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
             processed++;
         }
         
+        // --- NOWOŚĆ: Zapisz mecz jako całkowicie rozliczony ---
+        await setDoc(doc(db, "resolved_matches", matchId), { 
+            resolvedAt: new Date(),
+            matchTitle: `${homeScore}:${awayScore}` 
+        });
+        
+        // --- NOWOŚĆ: Odśwież listę rozwijaną (mecz natychmiast zniknie) ---
+        populateAdminMatches();
+        // --------------------------------------------------------
+
         logDiv.innerText = `✅ Sukces! Rozliczono ${processed} zakładów dla tego meczu.`;
         document.getElementById('admin-home-score').value = '';
         document.getElementById('admin-away-score').value = '';
+        document.getElementById('admin-cards').value = ''; // Czyszczenie pola kartek
         
     } catch(error) {
         console.error(error);
