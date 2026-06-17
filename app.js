@@ -325,19 +325,33 @@ onAuthStateChanged(auth, async (user) => {
 
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
+        
         if (!userSnap.exists()) {
+            // Rejestracja nowego użytkownika
             await setDoc(userRef, { 
                 email: user.email, 
                 points: 500,
-                exactHits: 0,   // Licznik dokładnych trafień (za 1000 pkt)
-                outcomeHits: 0  // Licznik trafień 1X2 (za 500 pkt)
+                exactHits: 0,
+                outcomeHits: 0,
+                jokers: 5 // 5 Jokerów na start
             });
+        } else {
+            // NAPRAWA: Jeśli to stare konto i nie ma jeszcze pola "jokers", dajemy mu 5
+            if (userSnap.data().jokers === undefined) {
+                await updateDoc(userRef, { jokers: 5 });
+            }
         }
 
         onSnapshot(userRef, (doc) => {
             if(doc.exists()) {
                 currentPoints = doc.data().points;
                 pointsDisplay.innerText = `💰 ${currentPoints} pkt`;
+                
+                // Aktualizacja Jokerów na ekranie
+                if (document.getElementById('joker-count')) {
+                    document.getElementById('joker-count').innerText = doc.data().jokers;
+                    window.currentUserJokers = doc.data().jokers;
+                }
             }
         });
 
@@ -427,16 +441,28 @@ document.getElementById('bet-form').addEventListener('submit', async (e) => {
     }
     // -------------------------------------------------------------
 
+    const useJoker = document.getElementById('use-joker').checked;
+    if (useJoker && window.currentUserJokers <= 0) return alert("Nie masz już Jokerów!");
+
     try {
         await addDoc(collection(db, "bets"), {
             userId: currentUser.uid,
             matchId: selectedMatchId,
             matchTitle: `${matchData.home} vs ${matchData.away}`,
             prediction: `${homeScore}:${awayScore}`,
-            cardsPrediction: cardsCount ? parseInt(cardsCount) : null, // <--- ZAPIS KARTEK DO BAZY
+            cardsPrediction: cardsCount ? parseInt(cardsCount) : null,
+            jokerUsed: useJoker, // <--- Zapisujemy info o Jokerze
             timestamp: new Date()
         });
+        
+        // Zdejmujemy Jokera z konta jeśli użył
+        if (useJoker) {
+            await updateDoc(doc(db, "users", currentUser.uid), { jokers: increment(-1) });
+        }
+        
         alert("Zapisano typ!");
+        document.getElementById('bet-form').reset();
+        loadUserBets();
         
         // Czyszczenie pół formularza po udanym obstawieniu
         document.getElementById('home-score').value = '';
@@ -726,6 +752,11 @@ document.getElementById('admin-form').addEventListener('submit', async (e) => {
                 pointsWon += 500; 
             }
             
+            // --- NOWOŚĆ: MNOŻNIK JOKERA ---
+            if (bet.jokerUsed && pointsWon > 0) {
+                pointsWon *= 2; // Podwajamy wszystko!
+            }
+            
             // Zaktualizuj zakład w bazie (oznacz jako rozliczony)
             await updateDoc(doc(db, "bets", betDoc.id), {
                 status: "resolved",
@@ -995,3 +1026,114 @@ window.showTeamBets = async function(matchId, matchTitle) {
 window.closeBetsModal = function() {
     document.getElementById('bets-modal').style.display = 'none';
 }
+
+// =========================================================================
+// ⚡ SZYBKIE STRZAŁY (ZAKŁADY SPECJALNE)
+// =========================================================================
+
+// Nasłuchiwanie na aktywne pytanie
+onSnapshot(doc(db, "settings", "special_bet"), async (docSnap) => {
+    const specialSection = document.getElementById('special-bet');
+    if (!docSnap.exists() || !docSnap.data().active) {
+        specialSection.style.display = 'none';
+        return;
+    }
+    
+    specialSection.style.display = 'block';
+    const data = docSnap.data();
+    document.getElementById('special-q-text').innerText = data.question;
+    
+    // Sprawdzamy czy user już głosował
+    if(currentUser) {
+        const voteQ = query(collection(db, "special_votes"), where("userId", "==", currentUser.uid), where("question", "==", data.question));
+        const voteSnap = await getDocs(voteQ);
+        const statusP = document.getElementById('special-status');
+        
+        if (!voteSnap.empty) {
+            const myVote = voteSnap.docs[0].data().answer;
+            statusP.innerHTML = `Twój typ: <strong>${myVote}</strong>. Czekamy na rozstrzygnięcie.`;
+            document.getElementById('special-btn-yes').disabled = true;
+            document.getElementById('special-btn-no').disabled = true;
+        } else {
+            statusP.innerText = "Wytypuj, aby zgarnąć 300 pkt!";
+            document.getElementById('special-btn-yes').disabled = false;
+            document.getElementById('special-btn-no').disabled = false;
+        }
+    }
+});
+
+// Oddawanie głosu
+const submitSpecialVote = async (answer) => {
+    if(!currentUser) return;
+    
+    // 1. Zablokuj przyciski NATYCHMIAST po kliknięciu (ochrona przed szybkim klikaczem)
+    document.getElementById('special-btn-yes').disabled = true;
+    document.getElementById('special-btn-no').disabled = true;
+
+    const qText = document.getElementById('special-q-text').innerText;
+    
+    // 2. Techniczne upewnienie się w bazie, czy użytkownik serio nie ma już głosu
+    const voteQ = query(collection(db, "special_votes"), where("userId", "==", currentUser.uid), where("question", "==", qText));
+    const voteSnap = await getDocs(voteQ);
+    
+    if (!voteSnap.empty) {
+        return alert("Odrzucono: Już oddałeś swój głos!");
+    }
+
+    // 3. Właściwy zapis do bazy
+    try {
+        await addDoc(collection(db, "special_votes"), {
+            userId: currentUser.uid,
+            question: qText,
+            answer: answer
+        });
+        alert(`Oddano typ: ${answer}!`);
+    } catch(e) {
+        console.error("Błąd podczas głosowania:", e);
+        // Odblokuj przyciski jeśli wystąpił błąd internetu
+        document.getElementById('special-btn-yes').disabled = false;
+        document.getElementById('special-btn-no').disabled = false;
+    }
+};
+
+document.getElementById('special-btn-yes')?.addEventListener('click', () => submitSpecialVote("TAK"));
+document.getElementById('special-btn-no')?.addEventListener('click', () => submitSpecialVote("NIE"));
+
+// --- PANEL ADMINA DO SZYBKICH STRZAŁÓW ---
+document.getElementById('admin-publish-special')?.addEventListener('click', async () => {
+    if(currentUser.email !== ADMIN_EMAIL) return;
+    const q = document.getElementById('admin-special-q').value;
+    if(!q) return alert("Wpisz pytanie!");
+    await setDoc(doc(db, "settings", "special_bet"), { question: q, active: true });
+    alert("Opublikowano nowe pytanie!");
+});
+
+const resolveSpecial = async (winningAnswer) => {
+    if(currentUser.email !== ADMIN_EMAIL) return;
+    const specialDoc = await getDoc(doc(db, "settings", "special_bet"));
+    if(!specialDoc.exists() || !specialDoc.data().active) return;
+    
+    const question = specialDoc.data().question;
+    
+    // Pobierz wszystkie głosy
+    const q = query(collection(db, "special_votes"), where("question", "==", question));
+    const snap = await getDocs(q);
+    
+    let winners = 0;
+    const batch = writeBatch(db);
+    
+    snap.forEach((voteDoc) => {
+        if(voteDoc.data().answer === winningAnswer) {
+            winners++;
+            const userRef = doc(db, "users", voteDoc.data().userId);
+            batch.update(userRef, { points: increment(300) }); // Nagroda 300 pkt!
+        }
+    });
+    
+    await batch.commit();
+    await setDoc(doc(db, "settings", "special_bet"), { active: false }); // Wyłącz pytanie
+    alert(`Rozstrzygnięto! Prawidłowa odpowiedź: ${winningAnswer}. Wygrało: ${winners} graczy.`);
+};
+
+document.getElementById('admin-resolve-yes')?.addEventListener('click', () => resolveSpecial("TAK"));
+document.getElementById('admin-resolve-no')?.addEventListener('click', () => resolveSpecial("NIE"));
