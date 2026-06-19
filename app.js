@@ -67,82 +67,56 @@ const matchesDB = [
     { id: "m28", date: "2026-06-19T03:00:00", home: "Bośnia i Herc.", away: "Szwajcaria" },
     
     // Grupa C i D
-    { id: "m29", date: "2026-06-19T18:00:00", home: "USA", away: "Haiti" },
-    { id: "m30", date: "2026-06-19T21:00:00", home: "Paragwaj", away: "Szkocja" },
-    { id: "m31", date: "2026-06-20T00:00:00", home: "Brazylia", away: "Australia" },
-    { id: "m32", date: "2026-06-20T03:00:00", home: "Maroko", away: "Turcja" },
-    
-    // Grupa E i F
-    { id: "m33", date: "2026-06-20T18:00:00", home: "Niemcy", away: "Wybrzeże Kości Sł." },
-    { id: "m34", date: "2026-06-20T21:00:00", home: "Curacao", away: "Ekwador" },
-    { id: "m35", date: "2026-06-21T00:00:00", home: "Holandia", away: "Szwecja" },
-    { id: "m36", date: "2026-06-21T03:00:00", home: "Japonia", away: "Tunezja" },
-    
-    // Grupa G i H
-    { id: "m37", date: "2026-06-21T18:00:00", home: "Hiszpania", away: "Arabia Saud." },
-    { id: "m38", date: "2026-06-21T21:00:00", home: "Republika Ziel. Przylądka", away: "Urugwaj" },
-    { id: "m39", date: "2026-06-22T00:00:00", home: "Belgia", away: "Iran" },
-    { id: "m40", date: "2026-06-22T03:00:00", home: "Egipt", away: "Nowa Zelandia" },
-    
-    // Grupa I i J
-    { id: "m41", date: "2026-06-22T18:00:00", home: "Francja", away: "Irak" },
-    { id: "m42", date: "2026-06-22T21:00:00", home: "Senegal", away: "Norwegia" },
-    { id: "m43", date: "2026-06-23T00:00:00", home: "Argentyna", away: "Austria" },
-    { id: "m44", date: "2026-06-23T03:00:00", home: "Algieria", away: "Jordania" },
-    
-    // Grupa K i L
-    { id: "m45", date: "2026-06-23T18:00:00", home: "Portugalia", away: "Ghana" },
-    { id: "m46", date: "2026-06-23T21:00:00", home: "DR Kongo", away: "Panama" },
-    { id: "m47", date: "2026-06-24T00:00:00", home: "Anglia", away: "Uzbekistan" },
-    { id: "m48", date: "2026-06-24T03:00:00", home: "Chorwacja", away: "Kolumbia" },
+// --- KOLEJKA 2 (Własna rozpiska: 19 - 23 Czerwca) ---
+    { id: "m25", date: "2026-06-19T00:00:00", home: "Kanada", away: "Katar" },
+    { id: "m26", date: "2026-06-19T03:00:00", home: "Meksyk", away: "Korea Południowa" },
+    { id: "m27", date: "2026-06-19T21:00:00", home: "USA", away: "Australia" },
+    { id: "m28", date: "2026-06-20T00:00:00", home: "Szkocja", away: "Maroko" },
+    { id: "m29", date: "2026-06-20T02:30:00", home: "Brazylia", away: "Haiti" },
+    { id: "m30", date: "2026-06-20T05:00:00", home: "Turcja", away: "Paragwaj" },
+    { id: "m31", date: "2026-06-20T19:00:00", home: "Holandia", away: "Szwecja" },
+    { id: "m32", date: "2026-06-20T22:00:00", home: "Niemcy", away: "Wybrzeże Kości Słoniowej" },
+    { id: "m33", date: "2026-06-21T02:00:00", home: "Ekwador", away: "Curacao" },
+    { id: "m34", date: "2026-06-21T06:00:00", home: "Tunezja", away: "Japonia" },
+    { id: "m35", date: "2026-06-21T18:00:00", home: "Hiszpania", away: "Arabia Saudyjska" },
+    { id: "m36", date: "2026-06-21T21:00:00", home: "Belgia", away: "Iran" },
+    { id: "m37", date: "2026-06-22T00:00:00", home: "Urugwaj", away: "Republika Zielonego Przylądka" },
+    { id: "m38", date: "2026-06-22T03:00:00", home: "Nowa Zelandia", away: "Egipt" },
+    { id: "m39", date: "2026-06-22T19:00:00", home: "Argentyna", away: "Austria" },
+    { id: "m40", date: "2026-06-22T23:00:00", home: "Francja", away: "Irak" },
+    { id: "m41", date: "2026-06-23T02:00:00", home: "Norwegia", away: "Senegal" },
+    { id: "m42", date: "2026-06-23T05:00:00", home: "Jordania", away: "Algieria" },
+    { id: "m43", date: "2026-06-23T19:00:00", home: "Portugalia", away: "Uzbekistan" },
+    { id: "m44", date: "2026-06-23T22:00:00", home: "Anglia", away: "Ghana" },
+    // --- DOKOŃCZENIE KOLEJKI 2 ---
+    { id: "m45", date: "2026-06-24T01:00:00", home: "Panama", away: "Chorwacja" },
+    { id: "m46", date: "2026-06-24T04:00:00", home: "Kolumbia", away: "DR Konga" },
 
-// Grupa A (Mecze o tej samej godzinie)
-    { id: "m49", date: "2026-06-24T18:00:00", home: "Meksyk", away: "Czechy" },
-    { id: "m50", date: "2026-06-24T18:00:00", home: "RPA", away: "Korea Płd." },
-    
-    // Grupa B
-    { id: "m51", date: "2026-06-24T21:00:00", home: "Kanada", away: "Szwajcaria" },
-    { id: "m52", date: "2026-06-24T21:00:00", home: "Bośnia i Herc.", away: "Katar" },
-    
-    // Grupa C
-    { id: "m53", date: "2026-06-25T18:00:00", home: "USA", away: "Szkocja" },
-    { id: "m54", date: "2026-06-25T18:00:00", home: "Paragwaj", away: "Haiti" },
-    
-    // Grupa D
-    { id: "m55", date: "2026-06-25T21:00:00", home: "Brazylia", away: "Turcja" },
-    { id: "m56", date: "2026-06-25T21:00:00", home: "Maroko", away: "Australia" },
-    
-    // Grupa E
-    { id: "m57", date: "2026-06-26T18:00:00", home: "Niemcy", away: "Ekwador" },
-    { id: "m58", date: "2026-06-26T18:00:00", home: "Curacao", away: "Wybrzeże Kości Sł." },
-    
-    // Grupa F
-    { id: "m59", date: "2026-06-26T21:00:00", home: "Holandia", away: "Tunezja" },
-    { id: "m60", date: "2026-06-26T21:00:00", home: "Japonia", away: "Szwecja" },
-    
-    // Grupa G
-    { id: "m61", date: "2026-06-27T18:00:00", home: "Hiszpania", away: "Urugwaj" },
-    { id: "m62", date: "2026-06-27T18:00:00", home: "Republika Ziel. Przylądka", away: "Arabia Saud." },
-    
-    // Grupa H
-    { id: "m63", date: "2026-06-27T21:00:00", home: "Belgia", away: "Nowa Zelandia" },
-    { id: "m64", date: "2026-06-27T21:00:00", home: "Egipt", away: "Iran" },
-    
-    // Grupa I
-    { id: "m65", date: "2026-06-28T18:00:00", home: "Francja", away: "Norwegia" },
-    { id: "m66", date: "2026-06-28T18:00:00", home: "Senegal", away: "Irak" },
-    
-    // Grupa J
-    { id: "m67", date: "2026-06-28T21:00:00", home: "Argentyna", away: "Jordania" },
-    { id: "m68", date: "2026-06-28T21:00:00", home: "Algieria", away: "Austria" },
-    
-    // Grupa K
-    { id: "m69", date: "2026-06-29T18:00:00", home: "Portugalia", away: "Panama" },
-    { id: "m70", date: "2026-06-29T18:00:00", home: "DR Kongo", away: "Ghana" },
-    
-    // Grupa L
-    { id: "m71", date: "2026-06-29T21:00:00", home: "Anglia", away: "Kolumbia" },
-    { id: "m72", date: "2026-06-29T21:00:00", home: "Chorwacja", away: "Uzbekistan" }
+    // --- KOLEJKA 3 (Własna rozpiska: 24 - 28 Czerwca) ---
+    { id: "m47", date: "2026-06-24T21:00:00", home: "Bośnia i Hercegowina", away: "Katar" },
+    { id: "m48", date: "2026-06-24T21:00:00", home: "Szwajcaria", away: "Kanada" },
+    { id: "m49", date: "2026-06-25T00:00:00", home: "Maroko", away: "Haiti" },
+    { id: "m50", date: "2026-06-25T00:00:00", home: "Szkocja", away: "Brazylia" },
+    { id: "m51", date: "2026-06-25T03:00:00", home: "Czechy", away: "Meksyk" },
+    { id: "m52", date: "2026-06-25T03:00:00", home: "Republika Południowej Afryki", away: "Korea Południowa" },
+    { id: "m53", date: "2026-06-25T22:00:00", home: "Curacao", away: "Wybrzeże Kości Słoniowej" },
+    { id: "m54", date: "2026-06-25T22:00:00", home: "Ekwador", away: "Niemcy" },
+    { id: "m55", date: "2026-06-26T01:00:00", home: "Japonia", away: "Szwecja" },
+    { id: "m56", date: "2026-06-26T01:00:00", home: "Tunezja", away: "Holandia" },
+    { id: "m57", date: "2026-06-26T04:00:00", home: "Paragwaj", away: "Australia" },
+    { id: "m58", date: "2026-06-26T04:00:00", home: "Turcja", away: "USA" },
+    { id: "m59", date: "2026-06-26T21:00:00", home: "Norwegia", away: "Francja" },
+    { id: "m60", date: "2026-06-26T21:00:00", home: "Senegal", away: "Irak" },
+    { id: "m61", date: "2026-06-27T02:00:00", home: "Republika Zielonego Przylądka", away: "Arabia Saudyjska" },
+    { id: "m62", date: "2026-06-27T02:00:00", home: "Urugwaj", away: "Hiszpania" },
+    { id: "m63", date: "2026-06-27T05:00:00", home: "Egipt", away: "Iran" },
+    { id: "m64", date: "2026-06-27T05:00:00", home: "Nowa Zelandia", away: "Belgia" },
+    { id: "m65", date: "2026-06-27T23:00:00", home: "Chorwacja", away: "Ghana" },
+    { id: "m66", date: "2026-06-27T23:00:00", home: "Panama", away: "Anglia" },
+    { id: "m67", date: "2026-06-28T01:30:00", home: "DR Konga", away: "Uzbekistan" },
+    { id: "m68", date: "2026-06-28T01:30:00", home: "Kolumbia", away: "Portugalia" },
+    { id: "m69", date: "2026-06-28T04:00:00", home: "Algieria", away: "Austria" },
+    { id: "m70", date: "2026-06-28T04:00:00", home: "Jordania", away: "Argentyna" }
 
 ];
 
